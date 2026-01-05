@@ -6,18 +6,30 @@ from .storage import get_text
 
 app = FastAPI(
     title="AstroBot API",
-    version="1.0.0"
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc"
 )
 
-# Разрешаем запросы от iOS / Web / Telegram
+# CORS — iOS / Web / Telegram
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# Типы контента, которые считаются premium
 PREMIUM_TYPES = {"love", "career"}
+
+
+@app.get("/")
+def root():
+    return {
+        "service": "AstroBot API",
+        "status": "running"
+    }
 
 
 @app.get("/health")
@@ -27,7 +39,11 @@ def health():
 
 @app.post("/api/horoscope", response_model=HoroscopeResponse)
 def horoscope(req: HoroscopeRequest):
-    # Premium gate
+    """
+    Основной endpoint гороскопа
+    """
+
+    # --- Premium gate ---
     if req.type in PREMIUM_TYPES and req.user_type == "free":
         return HoroscopeResponse(
             sign=req.sign,
@@ -37,7 +53,13 @@ def horoscope(req: HoroscopeRequest):
             is_premium_content=True
         )
 
-    text = get_text(req.sign, req.type, req.lang)
+    # --- Получаем текст ---
+    text = get_text(
+        sign=req.sign,
+        content_type=req.type,
+        lang=req.lang
+    )
+
     if not text:
         raise HTTPException(
             status_code=404,
@@ -51,4 +73,3 @@ def horoscope(req: HoroscopeRequest):
         text=text,
         is_premium_content=req.type in PREMIUM_TYPES
     )
-
