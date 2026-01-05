@@ -73,3 +73,9 @@ def horoscope(req: HoroscopeRequest):
         text=text,
         is_premium_content=req.type in PREMIUM_TYPES
     )
+@app.get("/")
+def root():
+    return {
+        "service": "AstroBot API",
+        "status": "running"
+    }
