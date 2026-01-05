@@ -1,3 +1,4 @@
+print(">>> ASTROBOT API MAIN.PY LOADED <<<")
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
